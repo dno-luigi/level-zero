@@ -6,21 +6,21 @@
       <title>Chat App</title>
       <link rel="stylesheet" href="style.css">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.2.12/marked.min.js"></script>
     </head>
-    <body class="dark-mode">
+    <body>
       <div class="container">
-        <header class="header">
+        <header>
           <div class="header-icons">
             <button id="menuButton"><i class="fas fa-bars"></i></button>
-            <button id="historyButton"><i class="fas fa-history"></i></button>
-            <button id="uploadButton"><i class="fas fa-upload"></i></button>
             <button id="toggleMode"><i class="fas fa-moon"></i></button>
           </div>
         </header>
         <main class="main">
           <div id="conversation" class="conversation"></div>
         </main>
-        <footer class="footer">
+        <footer>
           <input type="text" id="messageInput" class="message-input" placeholder="Type your message...">
           <button id="talkButton" class="talk-button"><i class="fas fa-microphone"></i></button>
         </footer>
@@ -29,56 +29,45 @@
         <div class="settings-panel">
           <div class="settings-header">
             <h2>Settings</h2>
-            <button id="closeSettings"><i class="fas fa-times"></i></button>
           </div>
           <div class="settings-content">
             <div class="setting-item">
-              <label for="baseUrl">Base URL</label>
-              <input type="text" id="baseUrl" placeholder="Base URL">
+              <label for="apiKeyInput">openrouter credentials (api key)</label>
+              <input type="text" id="apiKeyInput" required>
             </div>
             <div class="setting-item">
-              <label for="apiKey">API Key</label>
-              <input type="text" id="apiKey" placeholder="API Key">
+              <label for="favoriteModelSelect">model options</label>
+              <select id="favoriteModelSelect">
+                <option value="manual">manual mode</option>
+                <option value="deepseek/deepseek-r1-distill-llama-8b" selected>ds r1 thinker (dist.)</option>
+                <option value="google/gemini-flash-1.5-8b">gemma flsh 1.5</option>
+                <option value="liquid/lfm-7b">mistr moe 7</option>
+                <option value="mistralai/mixtral-8x7b-instruct">mistral mix 7</option>
+                <option value="meta-llama/llama-3.2-11b-vision-instruct">llamaVision11</option>
+                <option value="perplexity/llama-3.1-sonar-small-128k-online">diyPlexOnline</option>
+              </select>
             </div>
             <div class="setting-item">
-              <label for="preferredModel">Preferred Model</label>
-              <input type="text" id="preferredModel" placeholder="Preferred Model">
+              <label for="manualModelInput">manual mode</label>
+              <input type="text" id="manualModelInput" placeholder="deepseek/deepseek-r1-distill-llama-8b">
+              <button id="addModelButton">Add Model</button>
             </div>
             <div class="setting-item">
-              <label for="userInfo">User Info</label>
-              <textarea id="userInfo" placeholder="What you should know about me"></textarea>
+              <label for="userInfoInput">user</label>
+              <textarea id="userInfoInput" placeholder="what you know about me"></textarea>
             </div>
             <div class="setting-item">
-              <label for="responseInstructions">Response Instructions</label>
-              <textarea id="responseInstructions" placeholder="How I want you to respond"></textarea>
+              <label for="responseInstructionsInput">response</label>
+              <textarea id="responseInstructionsInput" placeholder="how you respond"></textarea>
             </div>
             <div class="setting-item">
               <label for="aiSpeechToggle">Enable AI Speech</label>
               <input type="checkbox" id="aiSpeechToggle">
             </div>
-            <div class="setting-item">
-              <button id="decreaseTextSize">-</button>
-              <button id="increaseTextSize">+</button>
-            </div>
             <button id="saveSettings">Save Settings</button>
           </div>
         </div>
       </div>
-      <div id="history" class="history">
-        <div class="history-panel">
-          <div class="history-header">
-            <h2>Chat History</h2>
-            <button id="closeHistory"><i class="fas fa-times"></i></button>
-          </div>
-          <div id="historyList" class="history-list"></div>
-          <div class="history-actions">
-            <button id="copyHistory">Copy</button>
-            <button id="exportHistory">Export</button>
-          </div>
-        </div>
-      </div>
-      <input type="file" id="fileInput" style="display: none;" accept="image/*, .txt, .pdf">
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.0/marked.min.js"></script>
       <script src="script.js"></script>
     </body>
     </html>

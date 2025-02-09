@@ -1,293 +1,278 @@
 const menuButton = document.getElementById('menuButton');
-    const historyButton = document.getElementById('historyButton');
-    const uploadButton = document.getElementById('uploadButton');
-    const toggleMode = document.getElementById('toggleMode');
-    const messageInput = document.getElementById('messageInput');
     const talkButton = document.getElementById('talkButton');
+    const messageInput = document.getElementById('messageInput');
     const conversation = document.getElementById('conversation');
     const applet = document.getElementById('applet');
-    const history = document.getElementById('history');
     const closeSettings = document.getElementById('closeSettings');
-    const closeHistory = document.getElementById('closeHistory');
-    const historyList = document.getElementById('historyList');
-    const copyHistory = document.getElementById('copyHistory');
-    const exportHistory = document.getElementById('exportHistory');
     const saveSettings = document.getElementById('saveSettings');
-    const decreaseTextSize = document.getElementById('decreaseTextSize');
-    const increaseTextSize = document.getElementById('increaseTextSize');
+    const favoriteModelSelect = document.getElementById('favoriteModelSelect');
+    const manualModelInput = document.getElementById('manualModelInput');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const userInfoInput = document.getElementById('userInfoInput');
+    const responseInstructionsInput = document.getElementById('responseInstructionsInput');
     const aiSpeechToggle = document.getElementById('aiSpeechToggle');
-    const baseUrlInput = document.getElementById('baseUrl');
-    const apiKeyInput = document.getElementById('apiKey');
-    const preferredModelInput = document.getElementById('preferredModel');
-    const userInfoInput = document.getElementById('userInfo');
-    const responseInstructionsInput = document.getElementById('responseInstructions');
-    const fileInput = document.getElementById('fileInput');
+    const toggleMode = document.getElementById('toggleMode');
 
-    let baseUrl = '';
-    let apiKey = '';
-    let preferredModel = '';
-    let userInfo = '';
-    let responseInstructions = '';
-    let textSize = 24;
     let recognizing = false;
     let recognition;
-    let currentUtterance = null;
+    let selectedModel = 'google/gemini-2.0-flash-lite-preview-02-05:free';
+    let apiKey = '';
+    let userInfo = '';
+    let responseInstructions = '';
     let aiSpeechEnabled = true;
-    let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    let isDarkMode = false;
+    let currentUtterance = null; // Variable to hold the current utterance
 
-    if ('webkitSpeechRecognition' in window) {
-      recognition = new webkitSpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = function() {
-        recognizing = true;
-        talkButton.innerHTML = '<i class="fas fa-stop"></i>';
-      };
-
-      recognition.onend = function() {
-        recognizing = false;
-        updateTalkButtonText();
-      };
-
-      recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        messageInput.value = transcript;
-        addMessage();
-      };
-    } else {
-      alert('Speech recognition not supported in this browser.');
+    // Function to create a button element
+    function createButton(innerHTML, onClick) {
+      const button = document.createElement('button');
+      button.innerHTML = innerHTML;
+      button.style.marginLeft = '10px';
+      button.addEventListener('click', onClick);
+      return button;
     }
 
-    uploadButton.addEventListener('click', () => {
-      fileInput.click();
-    });
+    // Function to sanitize text for speech synthesis
+    function sanitizeTextForSpeech(text) {
+      // Replace markdown formatting with spoken equivalents
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
+        .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting
+        .replace(/`(.*?)`/g, '$1') // Remove inline code formatting
+        .replace(/```(.*?)```/g, 'Here is the code: $1'); // Handle code blocks
+    }
 
-    fileInput.addEventListener('change', (event) => {
-      const files = event.target.files;
-      if (files.length > 0) {
-        const file = files[0];
-        const reader = new FileReader();
+    // Initialize speech recognition if supported
+    function initializeSpeechRecognition() {
+      if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
 
-        reader.onload = (e) => {
-          const fileElement = document.createElement('div');
-          fileElement.classList.add('message', 'user-message');
-          if (file.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.style.maxWidth = '100%';
-            img.style.height = 'auto';
-            fileElement.appendChild(img);
-          } else {
-            fileElement.textContent = `Uploaded: ${file.name}`;
-          }
-          conversation.appendChild(fileElement);
-          conversation.scrollTop = conversation.scrollHeight;
+        recognition.onstart = () => {
+          recognizing = true;
+          updateTalkButtonText();
         };
 
-        if (file.type.startsWith('image/')) {
-          reader.readAsDataURL(file);
-        } else {
-          reader.readAsText(file);
-        }
-      }
-    });
+        recognition.onend = () => {
+          recognizing = false;
+          updateTalkButtonText();
+        };
 
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          messageInput.value = transcript;
+          addMessage();
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+        };
+      } else {
+        talkButton.innerHTML = '<i class="fas fa-envelope"></i>';
+        talkButton.disabled = true;
+      }
+    }
+
+    // Update the talk button text based on recognition state
+    function updateTalkButtonText() {
+      talkButton.innerHTML = recognizing ? '<i class="fas fa-stop"></i>' : 
+        (aiSpeechEnabled && 'webkitSpeechRecognition' in window ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-envelope"></i>');
+    }
+
+    // Toggle the applet visibility
+    function toggleApplet() {
+      applet.classList.toggle('open');
+    }
+
+    // Save settings to local storage
+    function saveSettingsToLocalStorage() {
+      localStorage.setItem('selectedModel', selectedModel);
+      localStorage.setItem('apiKey', apiKey);
+      localStorage.setItem('userInfo', userInfo);
+      localStorage.setItem('responseInstructions', responseInstructions);
+      localStorage.setItem('aiSpeechEnabled', aiSpeechEnabled.toString());
+      localStorage.setItem('isDarkMode', isDarkMode);
+    }
+
+    // Add a message to the conversation
     async function addMessage() {
       const message = messageInput.value.trim();
       if (message) {
-        const userMessageElement = document.createElement('div');
-        userMessageElement.classList.add('message', 'user-message');
-        userMessageElement.textContent = message;
-        conversation.appendChild(userMessageElement);
+        appendUserMessage(message);
         messageInput.value = '';
         conversation.scrollTop = conversation.scrollHeight;
 
-        const typingElement = document.createElement('div');
-        typingElement.classList.add('message', 'ai-message', 'typing-indicator');
-        typingElement.innerHTML = `
-          <span></span>
-          <span></span>
-          <span></span>
-        `;
+        const typingElement = createTypingIndicator();
         conversation.appendChild(typingElement);
         conversation.scrollTop = conversation.scrollHeight;
 
         try {
-          const payload = {
-            model: preferredModel,
-            messages: [
-              { role: "system", content: `What you should know about me: ${userInfo}\nHow I want you to respond: ${responseInstructions}` },
-              { role: "user", content: message }
-            ]
-          };
-
-          const response = await fetch(`${baseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-          }
-
-          const data = await response.json();
-          const aiMessageContent = data.choices[0].message.content.trim();
-          const aiMessageElement = document.createElement('div');
-          aiMessageElement.innerHTML = marked(aiMessageContent);
-          aiMessageElement.classList.add('message', 'ai-message');
-          const ttsIcon = document.createElement('span');
-          ttsIcon.innerHTML = '<i class="fas fa-volume-up"></i>';
-          ttsIcon.style.cursor = 'pointer';
-          ttsIcon.onclick = () => {
-            if (currentUtterance) {
-              speechSynthesis.cancel();
-              currentUtterance = null;
-            }
-            currentUtterance = new SpeechSynthesisUtterance(aiMessageContent);
-            speechSynthesis.speak(currentUtterance);
-          };
-          aiMessageElement.appendChild(ttsIcon);
-          conversation.appendChild(aiMessageElement);
-          conversation.scrollTop = conversation.scrollHeight;
-
-          saveToHistory(message, aiMessageContent);
-
-          if (aiSpeechEnabled) {
-            currentUtterance = new SpeechSynthesisUtterance(aiMessageContent);
-            currentUtterance.onend = () => {
-              talkButton.click();
-            };
-            speechSynthesis.speak(currentUtterance);
-          }
+          const aiMessageContent = await fetchAIResponse(message);
+          appendAIMessage(aiMessageContent);
         } catch (error) {
-          console.error('Error:', error);
-          const errorMessageElement = document.createElement('div');
-          errorMessageElement.classList.add('message', 'ai-message');
-          errorMessageElement.textContent = `Error: ${error.message}`;
-          conversation.appendChild(errorMessageElement);
-          conversation.scrollTop = conversation.scrollHeight;
+          appendErrorMessage(error.message); // Use the existing error handling function
         } finally {
           conversation.removeChild(typingElement);
         }
       }
     }
 
-    function saveToHistory(userMessage, aiMessage) {
-      const timestamp = new Date().toLocaleString();
-      chatHistory.push({ timestamp, userMessage, aiMessage });
-      localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    // Append user message to the conversation
+    function appendUserMessage(message) {
+      const userMessageElement = document.createElement('div');
+      userMessageElement.classList.add('message', 'user-message');
+      userMessageElement.textContent = message;
+      conversation.appendChild(userMessageElement);
     }
 
-    function loadChatHistory() {
-      historyList.innerHTML = '';
-      chatHistory.forEach((chat, index) => {
-        const chatItem = document.createElement('div');
-        chatItem.classList.add('mb-2', 'p-2', 'rounded-md');
-        chatItem.innerHTML = `
-          <p class="text-xs text-secondary">${chat.timestamp}</p>
-          <p class="text-sm"><strong>You:</strong> ${chat.userMessage}</p>
-          <p class="text-sm"><strong>AI:</strong> ${chat.aiMessage}</p>
-          <button class="delete-button">Delete</button>
-        `;
-        const deleteButton = chatItem.querySelector('.delete-button');
-        deleteButton.addEventListener('click', () => {
-          chatHistory.splice(index, 1);
-          localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-          loadChatHistory();
-        });
-        historyList.appendChild(chatItem);
-      });
+    // Create typing indicator element
+    function createTypingIndicator() {
+      const typingElement = document.createElement('div');
+      typingElement.classList.add('message', 'ai-message', 'typing-indicator');
+      typingElement.innerHTML = `<span></span><span></span><span></span>`;
+      return typingElement;
     }
 
-    menuButton.addEventListener('click', () => {
-      applet.classList.toggle('open');
-    });
+    // Fetch AI response from the API
+    async function fetchAIResponse(message) {
+      const payload = {
+        model: selectedModel,
+        messages: [
+          { role: "system", content: `What you should know about me: ${userInfo}\nHow you will respond: ${responseInstructions}` },
+          { role: "user", content: message }
+        ]
+      };
 
-    historyButton.addEventListener('click', () => {
-      history.classList.toggle('open');
-      loadChatHistory();
-    });
-
-    closeSettings.addEventListener('click', () => {
-      applet.classList.remove('open');
-    });
-
-    closeHistory.addEventListener('click', () => {
-      history.classList.remove('open');
-    });
-
-    copyHistory.addEventListener('click', () => {
-      const historyText = chatHistory.map(chat => `You: ${chat.userMessage}\nAI: ${chat.aiMessage}`).join('\n\n');
-      navigator.clipboard.writeText(historyText).then(() => {
-        alert('Chat history copied to clipboard');
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(payload)
       });
-    });
 
-    exportHistory.addEventListener('click', () => {
-      const historyText = chatHistory.map(chat => `You: ${chat.userMessage}\nAI: ${chat.aiMessage}`).join('\n\n');
-      const blob = new Blob([historyText], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'chat_history.txt';
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-
-    toggleMode.addEventListener('click', () => {
-      if (document.body.classList.contains('dark-mode')) {
-        document.body.classList.remove('dark-mode');
-        document.body.classList.add('light-mode');
-        toggleMode.innerHTML = '<i class="fas fa-sun"></i>';
+      const data = await response.json();
+      if (data && data.choices && data.choices.length > 0) {
+        return data.choices[0].message.content.trim();
       } else {
-        document.body.classList.remove('light-mode');
-        document.body.classList.add('dark-mode');
-        toggleMode.innerHTML = '<i class="fas fa-moon"></i>';
+        throw new Error('Invalid response from API');
       }
-    });
+    }
 
-    saveSettings.addEventListener('click', () => {
-      const newBaseUrl = baseUrlInput.value;
-      if (!isValidUrl(newBaseUrl)) {
-        alert("Please enter a valid URL.");
-        return;
+    // Append AI message to the conversation
+    function appendAIMessage(aiMessageContent) {
+      const aiMessageElement = document.createElement('div');
+      aiMessageElement.classList.add('message', 'ai-message');
+
+      // Create a code block if the content is a code block
+      if (aiMessageContent.startsWith('```') && aiMessageContent.endsWith('```')) {
+        const codeContent = aiMessageContent.slice(3, -3).trim(); // Remove the ``` markers
+        const codeBlock = document.createElement('pre');
+        codeBlock.classList.add('code-block');
+        codeBlock.style.backgroundColor = 'black'; // Set background color for code block
+        codeBlock.textContent = codeContent;
+
+        // Add copy button to the code block
+        const copyButton = createButton('Copy', () => {
+          navigator.clipboard.writeText(codeContent).then(() => {
+            alert('Code copied to clipboard');
+          });
+        });
+        codeBlock.appendChild(copyButton);
+        aiMessageElement.appendChild(codeBlock);
+      } else {
+        aiMessageElement.innerHTML = marked.parse(aiMessageContent);
       }
-      baseUrl = newBaseUrl;
+
+      addMessageButtons(aiMessageElement, aiMessageContent);
+      conversation.appendChild(aiMessageElement);
+      conversation.scrollTop = conversation.scrollHeight;
+
+      if (aiSpeechEnabled) {
+        if (currentUtterance) {
+          speechSynthesis.cancel(); // Stop any ongoing speech
+        }
+        currentUtterance = new SpeechSynthesisUtterance(sanitizeTextForSpeech(aiMessageContent));
+        currentUtterance.lang = 'en-US';
+        speechSynthesis.speak(currentUtterance);
+      }
+    }
+
+    // Add buttons to the AI message
+    function addMessageButtons(aiMessageElement, aiMessageContent) {
+      const buttonContainer = document.createElement('div');
+      buttonContainer.classList.add('button-container');
+
+      const copyButton = createButton('<i class="fas fa-copy"></i>', () => {
+        navigator.clipboard.writeText(aiMessageContent).then(() => {
+          alert('Response copied to clipboard');
+        });
+      });
+
+      const speakButton = createButton('<i class="fas fa-volume-up"></i>', () => {
+        if (currentUtterance) {
+          speechSynthesis.cancel(); // Stop any ongoing speech
+        }
+        currentUtterance = new SpeechSynthesisUtterance(sanitizeTextForSpeech(aiMessageContent));
+        currentUtterance.lang = 'en-US';
+        speechSynthesis.speak(currentUtterance);
+      });
+
+      const deleteButton = createButton('<i class="fas fa-trash"></i>', () => {
+        conversation.removeChild(aiMessageElement);
+      });
+
+      buttonContainer.appendChild(copyButton);
+      buttonContainer.appendChild(speakButton);
+      buttonContainer.appendChild(deleteButton);
+      aiMessageElement.appendChild(buttonContainer);
+    }
+
+    // Append error message to the conversation
+    function appendErrorMessage(errorMessage) {
+      const errorMessageElement = document.createElement('div');
+      errorMessageElement.classList.add('message', 'ai-message');
+      errorMessageElement.textContent = `Error: ${errorMessage}`;
+      conversation.appendChild(errorMessageElement);
+      conversation.scrollTop = conversation.scrollHeight;
+    }
+
+    // Toggle dark mode
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      document.body.classList.toggle('light-mode');
+      isDarkMode = !isDarkMode;
+      const modeIcon = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+      toggleMode.innerHTML = modeIcon;
+    }
+
+    // Event listeners
+    menuButton.addEventListener('click', toggleApplet);
+    saveSettings.addEventListener('click', () => {
+      selectedModel = favoriteModelSelect.value === 'manual' ? manualModelInput.value : favoriteModelSelect.value;
       apiKey = apiKeyInput.value;
-      preferredModel = preferredModelInput.value;
       userInfo = userInfoInput.value;
       responseInstructions = responseInstructionsInput.value;
       aiSpeechEnabled = aiSpeechToggle.checked;
-
-      localStorage.setItem('baseUrl', baseUrl);
-      localStorage.setItem('apiKey', apiKey);
-      localStorage.setItem('preferredModel', preferredModel);
-      localStorage.setItem('userInfo', userInfo);
-      localStorage.setItem('responseInstructions', responseInstructions);
-      localStorage.setItem('aiSpeechEnabled', aiSpeechEnabled);
-
-      updateTalkButtonText();
+      apiKeyInput.style.display = 'none'; // Hide API key input after saving
+      saveSettingsToLocalStorage();
       applet.classList.remove('open');
+    });
+
+    favoriteModelSelect.addEventListener('change', () => {
+      manualModelInput.style.display = favoriteModelSelect.value === 'manual' ? 'block' : 'none';
     });
 
     talkButton.addEventListener('click', () => {
       if (recognizing) {
         recognition.stop();
-      } else if (!aiSpeechEnabled) {
-        addMessage();
-      } else {
-        if (currentUtterance) {
-          speechSynthesis.cancel();
-          currentUtterance = null;
-        }
+      } else if (aiSpeechEnabled && 'webkitSpeechRecognition' in window) {
         recognition.start();
       }
+      speechSynthesis.cancel(); // Interrupt any ongoing speech when the button is clicked
     });
 
     messageInput.addEventListener('keydown', (event) => {
@@ -296,47 +281,37 @@ const menuButton = document.getElementById('menuButton');
       }
     });
 
-    decreaseTextSize.addEventListener('click', () => {
-      textSize = Math.max(12, textSize - 2);
-      conversation.style.fontSize = `${textSize}px`;
-    });
+    toggleMode.addEventListener('click', toggleDarkMode);
 
-    increaseTextSize.addEventListener('click', () => {
-      textSize = Math.min(48, textSize + 2);
-      conversation.style.fontSize = `${textSize}px`;
-    });
-
-    function isValidUrl(url) {
-      const pattern = new RegExp('^(https?:\\/\\/)?'+
-        '((([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\\.)+[a-z]{2,}|'+
-        'localhost|'+
-        '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|'+
-        '\\[?[a-f0-9]*:[a-f0-9:%.]*\\]?)'+
-        '(\\:\\d+)?(\\/[-a-z0-9%_.~+]*)*'+
-        '(\\?[;&a-z0-9%_.~+=-]*)?'+
-        '(\\#[-a-z0-9_]*)?$','i');
-      return !!pattern.test(url);
+    // Initialize the application
+    function initializeApp() {
+      initializeSpeechRecognition();
+      loadSettingsFromLocalStorage();
+      updateTalkButtonText();
     }
 
-    function updateTalkButtonText() {
-      talkButton.innerHTML = aiSpeechEnabled ? (recognizing ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-microphone"></i>') : '<i class="fas fa-paper-plane"></i>';
-    }
-
-    window.onload = () => {
-      baseUrl = localStorage.getItem('baseUrl') || '';
+    // Load settings from local storage
+    function loadSettingsFromLocalStorage() {
+      selectedModel = localStorage.getItem('selectedModel') || selectedModel;
       apiKey = localStorage.getItem('apiKey') || '';
-      preferredModel = localStorage.getItem('preferredModel') || '';
       userInfo = localStorage.getItem('userInfo') || '';
       responseInstructions = localStorage.getItem('responseInstructions') || '';
       aiSpeechEnabled = localStorage.getItem('aiSpeechEnabled') === 'true';
+      isDarkMode = localStorage.getItem('isDarkMode') === 'true';
 
-      baseUrlInput.value = baseUrl;
+      favoriteModelSelect.value = selectedModel;
       apiKeyInput.value = apiKey;
-      preferredModelInput.value = preferredModel;
       userInfoInput.value = userInfo;
       responseInstructionsInput.value = responseInstructions;
       aiSpeechToggle.checked = aiSpeechEnabled;
 
-      updateTalkButtonText();
-      conversation.style.fontSize = `${textSize}px`;
-    };
+      if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        toggleMode.innerHTML = '<i class="fas fa-sun"></i>';
+      } else {
+        document.body.classList.add('light-mode');
+        toggleMode.innerHTML = '<i class="fas fa-moon"></i>';
+      }
+    }
+
+    window.onload = initializeApp;

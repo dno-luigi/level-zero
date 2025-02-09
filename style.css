@@ -1,305 +1,335 @@
-body {
-      font-family: sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap');
+
+    body {
+      font-family: 'Noto Serif JP', serif;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
-      background-color: #2c003e;
-      color: #fff;
+      background-color: #ffffff; /* Light background in light mode */
+      color: #333333; /* Dark text in light mode */
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
-    .dark-mode {
-      background-color: #2c003e;
-      color: #fff;
-    }
-    .light-mode {
-      background-color: #f0f0f0;
-      color: #333;
-    }
-    .light-mode .header-icons button,
-    .light-mode .talk-button {
-      color: #333; /* Dark text for icons in light mode */
-    }
-    .dark-mode .applet,
-    .dark-mode .history {
-      background-color: #2c003e; /* Dark purple background for applet in dark mode */
-      color: #fff;
-    }
-    .light-mode .applet,
-    .light-mode .history {
-      background-color: #fff; /* Light background for applet in light mode */
-      color: #333; /* Dark text for applet in light mode */
-    }
+
     .container {
       width: 100%;
-      max-width: 800px; /* Increased max-width for desktop */
-      height: 100vh; /* Make container take full viewport height */
+      max-width: 800px;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       border-radius: 10px;
-      overflow: hidden;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background-color: #ffffff; /* Light background in light mode */
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
+
     .header {
-      padding: 1rem 0; /* Reduce top/bottom padding in header */
+      padding: 1rem 0;
       display: flex;
       justify-content: space-between;
       background-color: transparent;
-      position: relative;
     }
+
     .header-icons {
       display: flex;
       justify-content: space-between;
-      width: 100%;
+      width: 150px;
       padding: 0 1rem;
     }
+
     .header-icons button {
       background: none;
       border: none;
-      color: #fff;
+      color: #333333; /* Dark text in light mode */
       font-size: 1.2rem;
       cursor: pointer;
       padding: 0.5rem;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
-    .dark-mode .header-icons button {
-      color: #fff;
-    }
-    .light-mode .header-icons button {
-      color: #333;
-    }
+
     .header-icons button:hover {
-      opacity: 0.8;
+      color: #666666;
+      text-shadow: 0 0 10px rgba(102, 102, 102, 0.5);
     }
+
     .main {
-      flex-grow: 1;
+      flex: 1;
       padding: 1rem;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
+      background-color: #f4f4f4; /* Light background in light mode */
+      transition: background-color 0.3s ease;
+      color: #333333; /* Dark text in light mode */
     }
+
     .conversation {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      font-size: 1.5rem;
     }
+
     .message {
-      max-width: 80%;
+      max-width: 75%;
       padding: 12px 16px;
       margin-bottom: 8px;
-      align-self: flex-start; /* Align all messages to the left */
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      position: relative;
+      max-height: none; /* Allow full height */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: max-height 0.3s ease;
+      background-color: transparent; /* Transparent background for messages */
+      border-radius: 10px;
+      font-size: 1rem;
+      line-height: 1.4;
     }
+
     .user-message {
-      color: white;
+      align-self: flex-start;
+      color: #333333; /* Dark text in light mode */
     }
+
     .ai-message {
-      color: #fff;
-      position: relative;
+      align-self: flex-start;
+      color: #333333; /* Match user text color in light mode */
     }
-    .ai-message::after {
-      content: '\f1c9'; /* Microphone icon */
-      font-family: 'Font Awesome 5 Free';
-      font-weight: 900;
-      position: absolute;
-      left: 10px;
-      bottom: -15px;
-      font-size: 0.8rem;
-      color: #333; /* Dark text for microphone icon */
-    }
-    .typing-indicator {
-      display: inline-block;
-      width: 60px;
-      height: 30px;
-      position: relative;
-    }
-    .typing-indicator span {
-      position: absolute;
-      width: 8px;
-      height: 8px;
-      background: #fff;
-      border-radius: 50%;
-      animation: typing 1s infinite ease-in-out;
-    }
-    .typing-indicator span:nth-child(1) {
-      left: 0;
-      animation-delay: 0s;
-    }
-    .typing-indicator span:nth-child(2) {
-      left: 15px;
-      animation-delay: 0.2s;
-    }
-    .typing-indicator span:nth-child(3) {
-      left: 30px;
-      animation-delay: 0.4s;
-    }
-    @keyframes typing {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
+
     .footer {
       padding: 1rem;
       display: flex;
       align-items: center;
-      background-color: transparent;
+      background-color: #ffffff; /* Light background in light mode */
+      position: sticky;
+      bottom: 0;
+      transition: background-color 0.3s ease;
     }
+
     .message-input {
       flex-grow: 1;
-      padding: 0.8rem;
+      padding: 0.8rem 3rem 0.8rem 1.2rem;
       border: none;
-      border-radius: 20px;
-      background-color: #fff;
-      color: #000;
-      margin-right: 1rem;
+      border-bottom: 1px solid #ccc;
+      background-color: transparent; /* Transparent input background in light mode */
+      color: #333333; /* Dark text in light mode */
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
     }
+
+    .message-input::placeholder {
+      color: #666666; /* Dark placeholder in light mode */
+      content: '...as you wish'; /* Placeholder text */
+    }
+
+    .message-input:focus {
+      outline: none;
+      border-color: #a0aec0;
+    }
+
     .talk-button {
       background: none;
       border: none;
-      color: #fff;
-      font-size: 1.5rem;
+      color: #333333; /* Dark text in light mode */
+      font-size: 1.2rem;
       cursor: pointer;
-      margin-left: 1rem; /* Add margin to the left of the talk button */
+      position: absolute;
+      right: 1rem;
+      bottom: 1rem;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
-    .dark-mode .talk-button {
-      color: #fff;
+
+    .talk-button:hover {
+      color: #2b6cb0;
+      text-shadow: 0 0 10px rgba(43, 108, 176, 0.5);
     }
-    .light-mode .talk-button {
-      color: #333;
-    }
-    .applet,
-    .history {
+
+    .applet {
       position: fixed;
       top: 0;
       right: 0;
       width: 300px;
       height: 100%;
-      background-color: #2a2a2a;
+      background-color: #f4f4f4; /* Light background in light mode */
       padding: 1rem;
       transform: translateX(100%);
       transition: transform 0.3s ease-in-out;
       z-index: 1000;
       overflow-y: auto;
+      border-left: 1px solid #e2e8f0;
     }
-    .dark-mode .applet,
-    .dark-mode .history {
-      background-color: #2c003e; /* Dark purple background for applet in dark mode */
-      color: #fff;
-    }
-    .light-mode .applet,
-    .light-mode .history {
-      background-color: #fff; /* Light background for applet in light mode */
-      color: #333; /* Dark text for applet in light mode */
-    }
-    .applet.open,
-    .history.open {
+
+    .applet.open {
       transform: translateX(0);
     }
-    .settings-panel,
-    .history-panel {
+
+    .dark-mode .applet {
+      background-color: #000000; /* Black background in dark mode */
+      border-left: 1px solid #4a5568; /* Dark border */
+    }
+
+    .dark-mode .container {
+      background-color: #000000; /* Black background in dark mode */
+      color: #f7fafc; /* Light text in dark mode */
+    }
+
+    .dark-mode .main {
+      background-color: #000000; /* Black background for main display in dark mode */
+      color: #f7fafc; /* Light text in dark mode */
+    }
+
+    .dark-mode .header-icons button {
+      color: #f7fafc; /* Light text in dark mode */
+    }
+
+    .dark-mode .header-icons button:hover {
+      color: #e2e8f0; /* Lighter text on hover in dark mode */
+    }
+
+    .settings-panel {
       display: flex;
       flex-direction: column;
       height: 100%;
+      background-color: #ffffff; /* Light background for settings panel */
+      color: #333333; /* Dark text in light mode */
+      padding: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    .settings-header,
-    .history-header {
+
+    .settings-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
     }
-    .settings-header h2,
-    .history-header h2 {
+
+    .settings-header h2 {
       margin: 0;
+      font-size: 1.5rem;
+      color: #333333; /* Dark text in light mode */
     }
-    .settings-header button,
-    .history-header button {
+
+    .settings-header button {
       background: none;
       border: none;
-      color: #fff;
+      color: #333333; /* Dark text in light mode */
       font-size: 1.2rem;
       cursor: pointer;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
-    .dark-mode .settings-header button,
-    .dark-mode .history-header button {
-      color: #fff;
+
+    .settings-header button:hover {
+      color: #666666; /* Dark hover text in light mode */
+      text-shadow: 0 0 10px rgba(102, 102, 102, 0.5);
     }
-    .light-mode .settings-header button,
-    .light-mode .history-header button {
-      color: #333;
-    }
+
     .settings-content {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
       gap: 1rem;
     }
+
     .setting-item {
       display: flex;
       flex-direction: column;
     }
+
     .setting-item label {
       margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: #333333; /* Dark text in light mode */
     }
+
     .setting-item input,
-    .setting-item textarea {
+    .setting-item textarea,
+    .setting-item select {
       padding: 0.5rem;
-      border: none;
+      border: 1px solid #ccc;
       border-radius: 5px;
-      background-color: #fff; /* White background for input fields */
-      color: #333; /* Dark text for input fields */
+      background-color: #ffffff; /* Light background in light mode */
+      color: #333333; /* Dark text in light mode */
+      font-size: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
+      width: 100%;
     }
+
     .setting-item textarea {
-      height: 100px;
+      height: 80px;
+      resize: vertical;
     }
-    .setting-item button {
-      background: none;
-      border: 1px solid #333; /* Dark border for buttons */
-      color: #333; /* Dark text for buttons */
-      padding: 0.5rem;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .dark-mode .setting-item button {
-      color: #fff;
-      border-color: #fff;
-    }
-    .light-mode .setting-item button {
-      color: #333;
-      border-color: #333;
-    }
+
     #saveSettings {
       background-color: #3b82f6;
       border: none;
       padding: 0.8rem;
       border-radius: 5px;
       cursor: pointer;
-      color: #fff; /* White text for save button */
+      color: #ffffff; /* White text in light mode */
+      font-size: 1rem;
+      transition: background-color 0.3s ease, text-shadow 0.3s ease;
     }
-    .history-list {
-      flex-grow: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+
+    #saveSettings:hover {
+      background-color: #2563eb;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
-    .history-actions {
-      display: flex;
-      gap: 10px;
+
+    .dark-mode {
+      background-color: #1a202c; /* Dark background */
+      color: #f7fafc; /* Light text */
     }
-    .history-actions button {
-      flex-grow: 1;
-      background: none;
-      border: 1px solid #333; /* Dark border for buttons */
-      color: #333; /* Dark text for buttons */
-      padding: 0.5rem;
-      border-radius: 5px;
+
+    /* Tooltip styles */
+    .tooltip {
+      position: relative;
+      display: inline-block;
       cursor: pointer;
     }
-    .dark-mode .history-actions button {
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 120px;
+      background-color: rgba(0, 0, 0, 0.7);
       color: #fff;
-      border-color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%; /* Position above the text */
+      left: 50%;
+      margin-left: -60px;
+      opacity: 0;
+      transition: opacity 0.3s;
     }
-    .light-mode .history-actions button {
-      color: #333;
-      border-color: #333;
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Button container styles */
+    .button-container {
+      background-color: #4a4a4a; /* Dark grey background */
+      padding: 5px;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dark-mode .button-container {
+      background-color: #333333; /* Darker grey for dark mode */
+    }
+
+    .dark-mode .button-container i {
+      color: #ffffff; /* White icons in dark mode */
+    }
+
+    .light-mode .button-container i {
+      color: #000000; /* Black icons in light mode */
     }
