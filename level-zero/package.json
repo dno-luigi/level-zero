@@ -8,7 +8,7 @@
         "preview": "vite preview"
       },
       "dependencies": {
-        "marked": "^2.0.0"
+        "marked": "^4.0.10"
       },
       "devDependencies": {
         "vite": "^4.5.5"
